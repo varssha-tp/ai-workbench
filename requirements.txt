@@ -5,3 +5,6 @@ pydantic-ai-slim[openai]
 python-dotenv
 pytest
 httpx
+pandas
+openpyxl
+pymupdf

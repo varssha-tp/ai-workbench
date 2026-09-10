@@ -32,7 +32,9 @@ def _build_prompt(goal: str, files: list[FileMeta] | None) -> str:
     if not files:
         return goal
 
-    file_lines = "\n".join(f"- {f.filename} ({f.file_type})" for f in files)
+    file_lines = "\n".join(
+        f"- {f.filename} ({f.file_type}), file_id: {f.file_id}" for f in files
+    )
     return f"Files provided:\n{file_lines}\n\nGoal: {goal}"
 
 
