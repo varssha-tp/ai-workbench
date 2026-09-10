@@ -4,7 +4,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.test import TestModel
 
 from backend.agent.prompts import PLANNER_SYSTEM_PROMPT
-from backend.models import TaskPlan
+from backend.models import FileMeta, TaskPlan
 
 
 def _build_model():
@@ -28,6 +28,15 @@ planner_agent = Agent(
 )
 
 
-async def create_plan(goal: str) -> TaskPlan:
-    result = await planner_agent.run(goal)
+def _build_prompt(goal: str, files: list[FileMeta] | None) -> str:
+    if not files:
+        return goal
+
+    file_lines = "\n".join(f"- {f.filename} ({f.file_type})" for f in files)
+    return f"Files provided:\n{file_lines}\n\nGoal: {goal}"
+
+
+async def create_plan(goal: str, files: list[FileMeta] | None = None) -> TaskPlan:
+    prompt = _build_prompt(goal, files)
+    result = await planner_agent.run(prompt)
     return result.output
