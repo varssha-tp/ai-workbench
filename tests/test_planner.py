@@ -43,10 +43,11 @@ def test_plan_endpoint_rejects_unknown_file_id():
 
 
 def test_build_prompt_includes_filenames_deterministically():
-    files = [FileMeta(file_id="1", filename="January.xlsx", file_type="excel", size_bytes=10)]
+    files = [FileMeta(file_id="abc-123", filename="January.xlsx", file_type="excel", size_bytes=10)]
     prompt = _build_prompt("Find the sales trend", files)
     assert "January.xlsx" in prompt
     assert "excel" in prompt
+    assert "abc-123" in prompt
     assert "Find the sales trend" in prompt
 
 

@@ -3,11 +3,22 @@ from fastapi import FastAPI, HTTPException, UploadFile
 
 load_dotenv()
 
+from backend.agent.executor import run_plan
 from backend.agent.planner import create_plan
-from backend.models import FileMeta, GoalRequest, TaskPlan
+from backend.models import FileMeta, GoalRequest, TaskPlan, WorkflowResult
 from backend.services.file_service import file_store
 
 app = FastAPI(title="AI Workbench")
+
+
+def _resolve_files(file_ids: list[str]) -> list[FileMeta]:
+    files = []
+    for file_id in file_ids:
+        meta = file_store.get(file_id)
+        if meta is None:
+            raise HTTPException(status_code=404, detail=f"Unknown file_id: {file_id}")
+        files.append(meta)
+    return files
 
 
 @app.post("/upload", response_model=list[FileMeta])
@@ -29,11 +40,15 @@ async def list_files() -> list[FileMeta]:
 
 @app.post("/plan", response_model=TaskPlan)
 async def plan(request: GoalRequest) -> TaskPlan:
-    files = []
-    for file_id in request.file_ids:
-        meta = file_store.get(file_id)
-        if meta is None:
-            raise HTTPException(status_code=404, detail=f"Unknown file_id: {file_id}")
-        files.append(meta)
-
+    files = _resolve_files(request.file_ids)
     return await create_plan(request.goal, files)
+
+
+@app.post("/execute", response_model=WorkflowResult)
+async def execute(request: GoalRequest) -> WorkflowResult:
+    files = _resolve_files(request.file_ids)
+    task_plan = await create_plan(request.goal, files)
+    try:
+        return await run_plan(task_plan)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
