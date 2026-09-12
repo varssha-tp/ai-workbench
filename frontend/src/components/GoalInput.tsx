@@ -1,17 +1,55 @@
+import type { FileMeta } from "../types";
+
 interface GoalInputProps {
   goal: string;
   onGoalChange: (goal: string) => void;
   onGenerate: () => void;
   disabled: boolean;
   isBusy: boolean;
+  files: FileMeta[];
 }
 
-export function GoalInput({ goal, onGoalChange, onGenerate, disabled, isBusy }: GoalInputProps) {
+function suggestionsFor(files: FileMeta[]): string[] {
+  const hasPdf = files.some((f) => f.file_type === "pdf");
+  const spreadsheets = files.filter((f) => f.file_type === "csv" || f.file_type === "excel");
+
+  const suggestions: string[] = [];
+  if (hasPdf) {
+    suggestions.push("Summarise this document", "Extract the key data into a table");
+  }
+  if (spreadsheets.length > 0) {
+    suggestions.push("Find the biggest changes", "Show me a trend chart");
+  }
+  if (spreadsheets.length >= 2) {
+    suggestions.push("Compare these files and find what changed");
+  }
+  return suggestions;
+}
+
+export function GoalInput({ goal, onGoalChange, onGenerate, disabled, isBusy, files }: GoalInputProps) {
+  const suggestions = suggestionsFor(files);
+
   return (
     <div className="mt-5">
       <label className="block text-sm font-medium text-ink-secondary">
         What would you like to achieve?
       </label>
+
+      {suggestions.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => onGoalChange(suggestion)}
+              className="rounded-full border border-purple-700/60 bg-purple-900/20 px-2.5 py-1 text-xs text-purple-200 transition-colors hover:bg-purple-900/40"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+
       <textarea
         value={goal}
         onChange={(e) => onGoalChange(e.target.value)}

@@ -14,9 +14,11 @@ It is deliberately *not* a general-purpose chatbot or agent. It only does five t
 |---|---|---|
 | **Understand** | Summarise or answer questions about a document | `extract_text` (PDF) — the model reads the real text and synthesises an answer, no separate "summarise" tool needed |
 | **Analyse** | Calculations, filters, comparisons on structured data | `analyse_dataset`, `compare_datasets` — pandas does the arithmetic, never the LLM |
-| **Transform** | Reshape raw data into a filtered/computed result | The same data tools above, formatted via `create_table` |
+| **Transform** | Turn unstructured or raw data into a real structured result | `extract_structured_data` pulls a table out of a PDF (e.g. line items, sessions, dates) into the same result store CSV/Excel data gets — so a document's data can flow into `create_table`/`generate_chart`/`analyse_dataset` too, not just prose |
 | **Visualise** | Turn data into a chart | `generate_chart` — shapes the data; actual rendering happens client-side in React |
 | **Decide** | Call out the finding that actually matters | A second, small LLM call that narrates already-computed results — not a tool, since this is exactly what an LLM is naturally good at (unlike arithmetic) |
+
+The `extract_structured_data` addition exists because of a real gap found by testing the app on an actual document: without it, "Understand" could only ever produce prose for a PDF — indistinguishable from asking ChatGPT. Now a document's data can be extracted into a real table with computed totals, not just summarised.
 
 ## How it's different from just asking ChatGPT
 
@@ -42,21 +44,23 @@ flowchart TD
     FE -->|"POST /execute"| EX["Executor"]
     PL --> EX
     EX --> T1["extract_text"]
-    EX --> T2["analyse_dataset"]
-    EX --> T3["compare_datasets"]
-    EX --> T4["generate_chart"]
-    EX --> T5["create_table"]
-    T2 & T3 & T4 & T5 --> RS[("ResultStore")]
+    EX --> T2["extract_structured_data"]
+    EX --> T3["analyse_dataset"]
+    EX --> T4["compare_datasets"]
+    EX --> T5["generate_chart"]
+    EX --> T6["create_table"]
+    T2 & T3 & T4 & T5 & T6 --> RS[("ResultStore")]
     EX -->|"small previews only"| FN["Findings (LLM)"]
     FN -->|"summary + findings"| EX
     EX -->|"resolves result_ids\nto full data"| R["WorkflowResult"]
     R --> FE --> U
 ```
 
-Two decisions carry the whole design:
+Three decisions carry the whole design:
 
 1. **One plan, deterministically executed.** The planner LLM produces a `TaskPlan` of concrete tool calls (tool name + real arguments), not prose. A plain Python executor runs each call in order — no second, independent agent re-deciding what to do. What the UI shows as "workflow used" is literally what ran.
-2. **Bulk data never round-trips through the LLM.** Tools that compute a table (`analyse_dataset`, `compare_datasets`) store the full result server-side and hand the LLM only a `result_id` + a 5-row preview. Later steps reference `$result_of_step_N` instead of the LLM re-typing data. The final result's full rows are resolved from the store at the API layer — the LLM never authors the numbers a user sees, it only decides what to compute and narrates the outcome.
+2. **Bulk data never round-trips through the LLM.** Tools that compute a table (`analyse_dataset`, `compare_datasets`, `extract_structured_data`) store the full result server-side and hand the LLM only a `result_id` + a 5-row preview. Later steps reference `$result_of_step_N` instead of the LLM re-typing data. The final result's full rows are resolved from the store at the API layer — the LLM never authors the numbers a user sees, it only decides what to compute and narrates the outcome.
+3. **A computed result is never silently dropped.** If a plan computes something but never explicitly calls `create_table`/`generate_chart` on it (verified empirically: the model doesn't reliably remember that last step), the executor surfaces the most recent result anyway. The reliability principle isn't just "don't trust the LLM with numbers" — it's "don't trust the LLM to remember to show its work" either, and the system should degrade to showing *something concrete* rather than prose alone.
 
 ## Tech stack
 
@@ -67,7 +71,7 @@ Two decisions carry the whole design:
 | AI | [Pydantic AI](https://ai.pydantic.dev/), OpenRouter (`openai/gpt-4o-mini`) |
 | Data | pandas, openpyxl |
 | Documents | PyMuPDF |
-| Testing | pytest (30 tests, backend fully covered) |
+| Testing | pytest (38 tests, backend fully covered) |
 
 ## Setup
 
@@ -124,7 +128,7 @@ To try it without the frontend at all, use `http://127.0.0.1:8000/docs` directly
 | ![Home screen](screenshots/01-home.png) | ![Files uploaded](screenshots/02-files-uploaded.png) |
 | Home screen | Files uploaded, ready to generate |
 | ![Planning in progress](screenshots/03-planning.png) | ![Result view](screenshots/04-result.png) |
-| Planning in progress | Result: table, findings, and workflow used |
+| Planning in progress | A PDF's data extracted into a real, computed table — with "✓ computed" vs "AI-narrated" badges and an expandable "technical details" view showing the exact tool call that ran |
 
 ## Test
 
@@ -136,7 +140,7 @@ pytest
 
 - **No persistence.** Uploaded files and computed results live in-memory for the life of the process — restart the server and they're gone. Fine for a hackathon demo, not for production.
 - **Single process, no auth.** No multi-user isolation; anyone hitting the API can see any uploaded file's metadata via `GET /files`.
-- **Five tools, not eight.** The original design sketched 8 named tools including `summarise_document` and `find_information`. Both turned out to be redundant with the executor's own final synthesis after `extract_text` — dropped in favor of 5 real, necessary tools.
+- **Six tools, not eight.** The original design sketched 8 named tools including `summarise_document` and `find_information`. Both turned out to be redundant with the executor's own final synthesis after `extract_text` — dropped in favor of 6 real, necessary tools (5 plus `extract_structured_data`, added after testing exposed a real gap in document handling).
 
 ## AI usage disclosure
 

@@ -1,4 +1,4 @@
-"""Proves the three flagship demo scenarios (README / devpost script) actually
+"""Proves the four flagship demo scenarios (README / devpost script) actually
 work end-to-end against the real model, using the real example files under
 examples/ — not synthetic inline data. If these fail, the demo video will fail.
 """
@@ -88,3 +88,22 @@ def test_demo_3_visualise_monthly_sales_trend():
     assert body["chart"] is not None
     assert body["chart"]["chart_type"] in ("line", "bar")
     assert len(body["chart"]["rows"]) == 6
+
+
+def test_demo_4_transform_extract_structured_data_from_pdf():
+    file_id = _upload(
+        os.path.join(EXAMPLES_DIR, "reports", "training_session_log.pdf"), "application/pdf"
+    )
+
+    response = client.post(
+        "/execute",
+        json={
+            "goal": "Extract each training session into a table with its date, duration, and topic.",
+            "file_ids": [file_id],
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+    assert body["table"] is not None
+    assert len(body["table"]["rows"]) == 4
