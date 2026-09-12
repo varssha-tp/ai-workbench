@@ -18,29 +18,40 @@ export function ProgressChecklist({ steps, done }: ProgressChecklistProps) {
   }, [steps.length]);
 
   const activeIndex = done ? steps.length : revealedCount - 1;
+  const progressPercent = done
+    ? 100
+    : Math.max(8, Math.round((activeIndex / steps.length) * 100));
 
   return (
-    <ul className="space-y-2.5">
-      {steps.map((step, i) => {
-        const isDone = done || i < activeIndex;
-        const isActive = !done && i === activeIndex;
-        return (
-          <li key={i} className="flex items-center gap-2.5 text-sm">
-            <span
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${
-                isDone
-                  ? "bg-emerald-500 text-white"
-                  : isActive
-                    ? "animate-pulse bg-purple-900 text-purple-300"
-                    : "bg-surface-2 text-ink-muted"
-              }`}
-            >
-              {isDone ? "✓" : i + 1}
-            </span>
-            <span className={isDone || isActive ? "text-ink" : "text-ink-muted"}>{step}</span>
-          </li>
-        );
-      })}
-    </ul>
+    <div>
+      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ease-out"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+      <ul className="space-y-2.5">
+        {steps.map((step, i) => {
+          const isDone = done || i < activeIndex;
+          const isActive = !done && i === activeIndex;
+          return (
+            <li key={i} className="flex items-center gap-2.5 text-sm">
+              <span
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${
+                  isDone
+                    ? "bg-emerald-500 text-white"
+                    : isActive
+                      ? "animate-pulse bg-purple-900 text-purple-300"
+                      : "bg-surface-2 text-ink-muted"
+                }`}
+              >
+                {isDone ? "✓" : i + 1}
+              </span>
+              <span className={isDone || isActive ? "text-ink" : "text-ink-muted"}>{step}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

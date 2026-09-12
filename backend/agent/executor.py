@@ -97,6 +97,18 @@ async def run_plan(plan: TaskPlan) -> WorkflowResult:
                 rows=to_records(df),
             )
 
+    # Safety net: if the plan computed structured data (via analyse_dataset,
+    # compare_datasets, or extract_structured_data) but never explicitly
+    # surfaced it with create_table/generate_chart, show it anyway — a
+    # computed result the user can't see is worse than an unrequested table,
+    # and the model doesn't reliably remember this extra step (verified: a
+    # reasonable-sounding goal produced no table 3/8 times in testing).
+    if table_spec is None and chart_spec is None and context:
+        last_result_id = context[max(context.keys())]
+        df = result_store.get(last_result_id)
+        if df is not None:
+            table_spec = TableSpec(title=plan.goal, columns=list(df.columns), rows=to_records(df))
+
     context_lines = list(previews)
     for text in text_outputs:
         context_lines.append(f"Extracted document text (truncated): {text[:3000]}")

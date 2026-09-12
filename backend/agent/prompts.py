@@ -76,6 +76,16 @@ Only reference columns you actually know exist (from the file names/types \
 given, or common sense about the goal — e.g. a "sales" file likely has a \
 product/date/sales-amount column). Keep the plan to only the steps needed \
 for this goal — don't add extra tool calls.
+
+IMPORTANT — showing results to the user: analyse_dataset, compare_datasets, \
+and extract_structured_data only return a `preview` (a few rows) to YOU, the \
+planner — the user never sees that preview. If the goal implies the user \
+wants to actually see a table, list, or chart (words like "table", "list", \
+"extract", "show me", "chart", "graph", "visualise" — not just a written \
+summary), the plan MUST end with a create_table and/or generate_chart step \
+on that result_id, or the user will see no data at all, only narration. \
+When in doubt about whether a table is wanted, add the create_table step — \
+it costs nothing and is never wrong to include.
 """
 
 FINDINGS_SYSTEM_PROMPT = """\

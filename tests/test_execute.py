@@ -1,9 +1,13 @@
+import asyncio
 import io
 
 import pandas as pd
 from fastapi.testclient import TestClient
 
+from backend.agent.executor import run_plan
 from backend.main import app
+from backend.models import TaskPlan, ToolCall
+from backend.services.file_service import file_store
 
 client = TestClient(app)
 
@@ -125,3 +129,26 @@ def test_execute_extracts_structured_data_from_pdf_into_a_real_table():
     body = response.json()
     assert body["table"] is not None
     assert len(body["table"]["rows"]) == 3
+
+
+def test_run_plan_surfaces_uncalled_result_as_table_fallback():
+    """A plan that computes something but never calls create_table/generate_chart
+    should still show the result — the LLM doesn't reliably remember that extra
+    step (verified empirically), so the executor covers it."""
+    df = pd.DataFrame({"product": ["A", "B"], "sales": [100, 200]})
+    meta = file_store.save("sales.csv", df.to_csv(index=False).encode())
+
+    plan = TaskPlan(
+        goal="Just calculate something, don't explicitly ask for a table",
+        calls=[
+            ToolCall(
+                step="Sum sales",
+                tool="analyse_dataset",
+                args={"file_id": meta.file_id, "operation": "sum", "value_column": "sales"},
+            )
+        ],
+    )
+
+    result = asyncio.run(run_plan(plan))
+    assert result.table is not None
+    assert result.table.rows[0]["sales"] == 300

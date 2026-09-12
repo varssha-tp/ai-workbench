@@ -4,7 +4,7 @@ import { Dropzone } from "./components/Dropzone";
 import { GoalInput } from "./components/GoalInput";
 import { ProgressChecklist } from "./components/ProgressChecklist";
 import { ResultView } from "./components/ResultView";
-import type { FileMeta, WorkflowResult } from "./types";
+import type { FileMeta, ToolCall, WorkflowResult } from "./types";
 
 type Status = "idle" | "planning" | "running" | "done" | "error";
 
@@ -13,6 +13,7 @@ function App() {
   const [goal, setGoal] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [planSteps, setPlanSteps] = useState<string[]>([]);
+  const [planCalls, setPlanCalls] = useState<ToolCall[]>([]);
   const [result, setResult] = useState<WorkflowResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [executeDone, setExecuteDone] = useState(false);
@@ -28,6 +29,7 @@ function App() {
     try {
       const plan = await getPlan(goal, fileIds);
       setPlanSteps(plan.steps);
+      setPlanCalls(plan.calls);
       setStatus("running");
 
       const workflowResult = await executeWorkflow(goal, fileIds);
@@ -44,6 +46,7 @@ function App() {
     setStatus("idle");
     setResult(null);
     setPlanSteps([]);
+    setPlanCalls([]);
     setError(null);
   }
 
@@ -68,6 +71,7 @@ function App() {
                 onGenerate={handleGenerate}
                 disabled={!canGenerate}
                 isBusy={false}
+                files={files}
               />
               {status === "error" && error && <p className="mt-3 text-sm text-red-400">{error}</p>}
             </div>
@@ -76,7 +80,12 @@ function App() {
           {(status === "planning" || status === "running") && (
             <div className="mt-8">
               {status === "planning" ? (
-                <p className="text-sm text-ink-secondary">Understanding your request…</p>
+                <div>
+                  <p className="text-sm text-ink-secondary">Understanding your request…</p>
+                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+                    <div className="h-full w-1/3 animate-pulse rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
+                  </div>
+                </div>
               ) : (
                 <ProgressChecklist steps={planSteps} done={executeDone} />
               )}
@@ -85,7 +94,7 @@ function App() {
 
           {status === "done" && result && (
             <div className="mt-8">
-              <ResultView result={result} workflowSteps={planSteps} onReset={handleReset} />
+              <ResultView result={result} workflowSteps={planSteps} planCalls={planCalls} onReset={handleReset} />
             </div>
           )}
         </div>

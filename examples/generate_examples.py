@@ -63,6 +63,25 @@ def generate_annual_report_pdf():
     print(f"wrote {path}")
 
 
+def generate_session_log_pdf():
+    path = os.path.join(HERE, "reports", "training_session_log.pdf")
+    doc = fitz.open()
+
+    page = doc.new_page()
+    page.insert_text((72, 72), "Training Session Log -- Q3 2026", fontsize=18)
+    page.insert_text((72, 110), "Participant: Alex Tan", fontsize=11)
+    page.insert_text((72, 130), "Programme: Data Analytics Bootcamp", fontsize=11)
+
+    page.insert_text((72, 170), "Session 1: 14-Jul-2026, duration 2 hours, topic: SQL fundamentals", fontsize=11)
+    page.insert_text((72, 198), "Session 2: 21-Jul-2026, duration 1.5 hours, topic: Data visualisation", fontsize=11)
+    page.insert_text((72, 226), "Session 3: 4-Aug-2026, duration 2 hours, topic: Statistics basics", fontsize=11)
+    page.insert_text((72, 254), "Session 4: 18-Aug-2026, duration 1 hour, topic: Final project review", fontsize=11)
+
+    doc.save(path)
+    doc.close()
+    print(f"wrote {path}")
+
+
 def generate_sales_files():
     products = [
         "Laptop A",
@@ -100,5 +119,6 @@ def generate_monthly_sales_csv():
 
 if __name__ == "__main__":
     generate_annual_report_pdf()
+    generate_session_log_pdf()
     generate_sales_files()
     generate_monthly_sales_csv()
