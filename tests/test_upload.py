@@ -40,3 +40,11 @@ def test_upload_rejects_unsupported_extension():
         files=[("files", ("notes.docx", b"whatever", "application/msword"))],
     )
     assert response.status_code == 400
+
+
+def test_upload_rejects_empty_file():
+    response = client.post(
+        "/upload",
+        files=[("files", ("empty.csv", b"", "text/csv"))],
+    )
+    assert response.status_code == 400

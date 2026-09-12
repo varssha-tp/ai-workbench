@@ -42,6 +42,21 @@ def test_plan_endpoint_rejects_unknown_file_id():
     assert response.status_code == 404
 
 
+def test_plan_endpoint_rejects_empty_goal():
+    response = client.post("/plan", json={"goal": ""})
+    assert response.status_code == 422
+
+
+def test_plan_endpoint_rejects_whitespace_only_goal():
+    response = client.post("/plan", json={"goal": "   "})
+    assert response.status_code == 422
+
+
+def test_execute_endpoint_rejects_empty_goal():
+    response = client.post("/execute", json={"goal": ""})
+    assert response.status_code == 422
+
+
 def test_build_prompt_includes_filenames_deterministically():
     files = [FileMeta(file_id="abc-123", filename="January.xlsx", file_type="excel", size_bytes=10)]
     prompt = _build_prompt("Find the sales trend", files)

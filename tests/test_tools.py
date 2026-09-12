@@ -123,3 +123,48 @@ def test_extract_text_reads_real_pdf():
     meta = file_store.save("report.pdf", pdf_bytes)
     text = extract_text(meta.file_id)
     assert "Revenue increased by 12%" in text
+
+
+def test_analyse_dataset_corrupt_excel_raises_value_error():
+    meta = file_store.save("broken.xlsx", b"this is not a real xlsx file")
+
+    with pytest.raises(ValueError):
+        analyse_dataset(meta.file_id, operation="average", value_column="sales")
+
+
+def test_compare_datasets_corrupt_csv_raises_value_error():
+    good = _upload_csv("good.csv", pd.DataFrame({"product": ["A"], "sales": [1]}))
+    bad = file_store.save("bad.csv", b"\x00\x01\x02not,valid,csv\x00\x00")
+
+    with pytest.raises(ValueError):
+        compare_datasets(
+            good.file_id, bad.file_id, key_column="product", value_column="sales"
+        )
+
+
+def test_extract_text_corrupt_pdf_raises_value_error():
+    meta = file_store.save("broken.pdf", b"this is not a real pdf file")
+
+    with pytest.raises(ValueError):
+        extract_text(meta.file_id)
+
+
+def test_analyse_dataset_non_numeric_top_n_raises_clear_error():
+    df = pd.DataFrame({"product": ["A", "B"], "sales": [100, 200]})
+    meta = _upload_csv("sales.csv", df)
+
+    with pytest.raises(ValueError, match="top_n"):
+        analyse_dataset(meta.file_id, operation="top_n", value_column="sales", top_n="five")
+
+
+def test_analyse_dataset_non_numeric_threshold_raises_clear_error():
+    df = pd.DataFrame({"product": ["A", "B"], "sales": [100, 200]})
+    meta = _upload_csv("sales.csv", df)
+
+    with pytest.raises(ValueError, match="threshold"):
+        analyse_dataset(
+            meta.file_id,
+            operation="filter_threshold",
+            value_column="sales",
+            threshold="a lot",
+        )

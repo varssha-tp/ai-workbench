@@ -64,3 +64,30 @@ def test_execute_finds_product_with_large_decline():
     table_products = {row["product"] for row in body["table"]["rows"]}
     assert "Keyboard C" in table_products
     assert "Laptop A" not in table_products
+
+
+def test_execute_corrupt_file_returns_clean_400_not_500():
+    upload_response = client.post(
+        "/upload",
+        files=[
+            (
+                "files",
+                (
+                    "sales.xlsx",
+                    b"this is not a real excel file, just garbage bytes",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ),
+            )
+        ],
+    )
+    file_id = upload_response.json()[0]["file_id"]
+
+    response = client.post(
+        "/execute",
+        json={
+            "goal": "Calculate the average of the 'sales' column in sales.xlsx",
+            "file_ids": [file_id],
+        },
+    )
+    assert response.status_code == 400, response.text
+    assert "sales.xlsx" in response.json()["detail"]
