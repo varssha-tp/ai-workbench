@@ -45,7 +45,7 @@ export function Dropzone({ files, onFilesAdded }: DropzoneProps) {
         }}
         onClick={() => inputRef.current?.click()}
         className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-          isDragging ? "border-slate-900 bg-slate-100" : "border-slate-300 bg-white hover:border-slate-400"
+          isDragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-white hover:border-brand-300 hover:bg-brand-50/40"
         }`}
       >
         <input
@@ -69,10 +69,10 @@ export function Dropzone({ files, onFilesAdded }: DropzoneProps) {
           {files.map((f) => (
             <li
               key={f.file_id}
-              className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700"
+              className="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs text-brand-700"
             >
               <span className="font-medium">{f.filename}</span>
-              <span className="text-slate-400">{TYPE_LABEL[f.file_type] ?? f.file_type}</span>
+              <span className="text-brand-400">{TYPE_LABEL[f.file_type] ?? f.file_type}</span>
             </li>
           ))}
         </ul>
