@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, field_validator
 
 ToolName = Literal[
     "extract_text",
@@ -35,6 +35,13 @@ class TaskPlan(BaseModel):
 class GoalRequest(BaseModel):
     goal: str
     file_ids: list[str] = []
+
+    @field_validator("goal")
+    @classmethod
+    def goal_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("goal must not be empty")
+        return value
 
 
 class FileMeta(BaseModel):

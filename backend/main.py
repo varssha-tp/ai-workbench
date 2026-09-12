@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 
@@ -19,6 +20,14 @@ app.add_middleware(
 )
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Something went wrong processing this request."},
+    )
+
+
 def _resolve_files(file_ids: list[str]) -> list[FileMeta]:
     files = []
     for file_id in file_ids:
@@ -34,6 +43,10 @@ async def upload(files: list[UploadFile]) -> list[FileMeta]:
     metas = []
     for upload_file in files:
         content = await upload_file.read()
+        if len(content) == 0:
+            raise HTTPException(
+                status_code=400, detail=f"'{upload_file.filename}' is empty."
+            )
         try:
             metas.append(file_store.save(upload_file.filename, content))
         except ValueError as e:
