@@ -1,3 +1,4 @@
+import asyncio
 import io
 
 import pandas as pd
@@ -6,7 +7,7 @@ import pytest
 from backend.services.file_service import file_store
 from backend.services.result_service import result_store
 from backend.tools.data_tools import analyse_dataset, compare_datasets
-from backend.tools.document_tools import extract_text
+from backend.tools.document_tools import extract_structured_data, extract_text
 from backend.tools.output_tools import create_table, generate_chart
 
 
@@ -47,6 +48,17 @@ def test_analyse_dataset_filter_threshold():
         meta.file_id, operation="filter_threshold", value_column="sales", threshold=150
     )
     assert result["row_count"] == 2
+
+
+def test_analyse_dataset_all_rows_preserves_both_columns():
+    df = pd.DataFrame({"month": ["Jan", "Feb", "Mar"], "sales": [100, 150, 400]})
+    meta = _upload_csv("monthly_sales.csv", df)
+
+    result = analyse_dataset(
+        meta.file_id, operation="all_rows", value_column="sales", group_by_column="month"
+    )
+    assert result["row_count"] == 3
+    assert set(result["preview"][0].keys()) == {"month", "sales"}
 
 
 def test_analyse_dataset_unknown_column_raises():
@@ -168,3 +180,45 @@ def test_analyse_dataset_non_numeric_threshold_raises_clear_error():
             value_column="sales",
             threshold="a lot",
         )
+
+
+def test_analyse_dataset_sum():
+    df = pd.DataFrame({"product": ["A", "B", "C"], "sales": [100, 200, 300]})
+    meta = _upload_csv("sales.csv", df)
+
+    result = analyse_dataset(meta.file_id, operation="sum", value_column="sales")
+    assert result["preview"][0]["sales"] == 600
+
+
+def test_analyse_dataset_can_operate_on_a_result_id():
+    df = pd.DataFrame({"session": ["A", "B", "C"], "duration_hours": [1, 1, 1]})
+    result_id = result_store.save(df)
+
+    result = analyse_dataset(result_id, operation="sum", value_column="duration_hours")
+    assert result["preview"][0]["duration_hours"] == 3
+
+
+def test_extract_structured_data_from_pdf():
+    import fitz
+
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), "Session 1: 20-Jul-2026, duration 1 hour")
+    page.insert_text((72, 100), "Session 2: 27-Jul-2026, duration 1 hour")
+    page.insert_text((72, 128), "Session 3: 13-Aug-2026, duration 1 hour")
+    pdf_bytes = doc.tobytes()
+    doc.close()
+
+    meta = file_store.save("sessions.pdf", pdf_bytes)
+    result = asyncio.run(
+        extract_structured_data(meta.file_id, "each session with its date and duration")
+    )
+    assert result["row_count"] == 3
+    assert len(result["preview"]) > 0
+
+
+def test_extract_structured_data_rejects_non_pdf():
+    meta = file_store.save("sales.csv", b"product,sales\nA,100\n")
+
+    with pytest.raises(ValueError):
+        asyncio.run(extract_structured_data(meta.file_id, "products and sales"))

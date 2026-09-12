@@ -91,3 +91,37 @@ def test_execute_corrupt_file_returns_clean_400_not_500():
     )
     assert response.status_code == 400, response.text
     assert "sales.xlsx" in response.json()["detail"]
+
+
+def test_execute_extracts_structured_data_from_pdf_into_a_real_table():
+    import fitz
+
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), "Mentoring Session 1: 20-Jul-2026, duration 1 hour")
+    page.insert_text((72, 100), "Mentoring Session 2: 27-Jul-2026, duration 1 hour")
+    page.insert_text((72, 128), "Mentoring Session 3: 13-Aug-2026, duration 1 hour")
+    pdf_bytes = doc.tobytes()
+    doc.close()
+
+    upload_response = client.post(
+        "/upload",
+        files=[("files", ("mentorship_form.pdf", pdf_bytes, "application/pdf"))],
+    )
+    file_id = upload_response.json()[0]["file_id"]
+
+    response = client.post(
+        "/execute",
+        json={
+            "goal": (
+                "Extract each mentoring session from mentorship_form.pdf into a "
+                "table with its date and duration."
+            ),
+            "file_ids": [file_id],
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+    assert body["table"] is not None
+    assert len(body["table"]["rows"]) == 3

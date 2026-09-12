@@ -8,11 +8,20 @@ from backend.tools._common import to_records
 
 PREVIEW_ROWS = 5
 
-AnalyseOperation = Literal["average", "sum_by_group", "top_n", "filter_threshold"]
+AnalyseOperation = Literal[
+    "average", "sum", "sum_by_group", "top_n", "filter_threshold", "all_rows"
+]
 Comparison = Literal["greater_than", "less_than"]
 
 
 def _load_dataframe(file_id: str) -> pd.DataFrame:
+    # file_id may actually be a result_id from an earlier step (e.g.
+    # extract_structured_data) — those are already-loaded DataFrames, no
+    # disk read needed.
+    cached = result_store.get(file_id)
+    if cached is not None:
+        return cached
+
     meta = file_store.get(file_id)
     if meta is None:
         raise ValueError(f"Unknown file_id: {file_id}")
@@ -63,6 +72,8 @@ def analyse_dataset(
 
     if operation == "average":
         result_df = pd.DataFrame([{value_column: df[value_column].mean()}])
+    elif operation == "sum":
+        result_df = pd.DataFrame([{value_column: df[value_column].sum()}])
     elif operation == "sum_by_group":
         if not group_by_column:
             raise ValueError("sum_by_group requires group_by_column")
@@ -79,6 +90,11 @@ def analyse_dataset(
             result_df = df[df[value_column] > threshold]
         else:
             result_df = df[df[value_column] < threshold]
+    elif operation == "all_rows":
+        columns = [group_by_column, value_column] if group_by_column else [value_column]
+        if group_by_column:
+            _require_column(df, group_by_column)
+        result_df = df[columns]
     else:
         raise ValueError(f"Unknown operation: {operation}")
 
