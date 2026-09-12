@@ -1,21 +1,41 @@
 @import "tailwindcss";
 
-/* Brand scale anchored on the same blue used as the chart's series-1 color
-   (see Chart.tsx / the dataviz skill's validated categorical palette), so the
-   UI chrome and the data visualisations read as one coherent system. */
+/* Dark theme: near-black surfaces with a purple->pink gradient identity.
+   Purple is anchored on #9085e9 — the dataviz skill's validated dark-mode
+   categorical "violet" slot — so the UI chrome and the chart's accent color
+   share a root hue. Pink is a separate, deliberately vivid accent used only
+   for gradient endpoints (title, primary button, top bar, section markers),
+   not for data encoding, so it isn't held to the categorical validation. */
 @theme {
-  --color-brand-50: #f2f8fe;
-  --color-brand-100: #cde2fb;
-  --color-brand-200: #9ec5f4;
-  --color-brand-300: #6da7ec;
-  --color-brand-400: #3987e5;
-  --color-brand-500: #2a78d6;
-  --color-brand-600: #256abf;
-  --color-brand-700: #184f95;
-  --color-brand-900: #0d366b;
+  --color-purple-200: #ded9fa;
+  --color-purple-300: #b8aef0;
+  --color-purple-400: #9085e9;
+  --color-purple-500: #7d6de3;
+  --color-purple-600: #6952d6;
+  --color-purple-700: #4a3aa7;
+  --color-purple-900: #241c52;
+
+  --color-pink-300: #f0abfc;
+  --color-pink-400: #e879f9;
+  --color-pink-500: #d946ef;
+  --color-pink-600: #c026d3;
+
+  --color-surface: #17171f;
+  --color-surface-2: #1f1f2a;
+  --color-ink: #f5f5f7;
+  --color-ink-secondary: #b8b8c2;
+  --color-ink-muted: #7a7a86;
+  --color-line: #2a2a35;
 }
 
 body {
-  background: linear-gradient(180deg, var(--color-brand-50) 0%, #f8fafc 320px, #f8fafc 100%);
+  background-color: #08080b;
+  background-image:
+    radial-gradient(ellipse 1000px 620px at 50% -10%, rgba(144, 133, 233, 0.45), transparent 62%),
+    radial-gradient(ellipse 800px 500px at 100% 100%, rgba(217, 70, 239, 0.2), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 0% 100%, rgba(105, 82, 214, 0.2), transparent 60%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
+  color: var(--color-ink);
 }

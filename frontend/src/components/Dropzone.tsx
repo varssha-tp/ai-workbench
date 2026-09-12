@@ -45,7 +45,9 @@ export function Dropzone({ files, onFilesAdded }: DropzoneProps) {
         }}
         onClick={() => inputRef.current?.click()}
         className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-          isDragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-white hover:border-brand-300 hover:bg-brand-50/40"
+          isDragging
+            ? "border-purple-400 bg-purple-900/30"
+            : "border-line bg-surface-2/40 hover:border-purple-500 hover:bg-purple-900/10"
         }`}
       >
         <input
@@ -56,23 +58,23 @@ export function Dropzone({ files, onFilesAdded }: DropzoneProps) {
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
-        <p className="text-sm font-medium text-slate-700">
+        <p className="text-sm font-medium text-ink">
           {isUploading ? "Uploading…" : "Drop your files here"}
         </p>
-        <p className="mt-1 text-xs text-slate-400">PDF · CSV · Excel</p>
+        <p className="mt-1 text-xs text-ink-muted">PDF · CSV · Excel</p>
       </div>
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
 
       {files.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-2">
           {files.map((f) => (
             <li
               key={f.file_id}
-              className="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs text-brand-700"
+              className="flex items-center gap-1.5 rounded-full bg-purple-900/40 px-3 py-1 text-xs text-purple-200"
             >
               <span className="font-medium">{f.filename}</span>
-              <span className="text-brand-400">{TYPE_LABEL[f.file_type] ?? f.file_type}</span>
+              <span className="text-purple-400">{TYPE_LABEL[f.file_type] ?? f.file_type}</span>
             </li>
           ))}
         </ul>
