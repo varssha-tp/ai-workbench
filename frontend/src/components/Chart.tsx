@@ -17,22 +17,28 @@ import {
 import type { ChartSpec } from "../types";
 import { DataTable } from "./DataTable";
 
-// Validated categorical palette (dataviz skill reference), fixed order — never cycled.
+// Validated dark-mode categorical palette (dataviz skill reference, re-run
+// against this app's near-black surface), fixed order — never cycled.
 const CATEGORICAL = [
-  "#2a78d6",
-  "#eb6834",
-  "#1baf7a",
-  "#eda100",
-  "#e87ba4",
+  "#3987e5",
+  "#d95926",
+  "#199e70",
+  "#c98500",
+  "#d55181",
   "#008300",
-  "#4a3aa7",
-  "#e34948",
+  "#9085e9",
+  "#e66767",
 ];
-const SERIES_1 = CATEGORICAL[0];
-const INK_SECONDARY = "#52514e";
-const INK_MUTED = "#898781";
-const GRIDLINE = "#e1e0d9";
-const SURFACE = "#fcfcfb";
+// Single-series charts use the brand purple directly (matches CATEGORICAL[6],
+// the validated dark "violet" slot) rather than the categorical order's first
+// slot — there's only one series, so the fixed-order rule (which protects
+// adjacent-pair distinctness) doesn't apply.
+const SERIES_1 = "#9085e9";
+const INK_SECONDARY = "#b8b8c2";
+const INK_MUTED = "#7a7a86";
+const GRIDLINE = "#2a2a35";
+const SURFACE = "#17171f";
+const TOOLTIP_BG = "#1f1f2a";
 
 const MAX_PIE_SLICES = 7;
 
@@ -44,6 +50,14 @@ function foldPieData(rows: Record<string, unknown>[], xField: string, yField: st
   const otherValue = rest.reduce((sum, r) => sum + Number(r[yField] ?? 0), 0);
   return [...top, { [xField]: "Other", [yField]: otherValue }];
 }
+
+const tooltipStyle = {
+  fontSize: 12,
+  borderRadius: 8,
+  borderColor: GRIDLINE,
+  backgroundColor: TOOLTIP_BG,
+  color: INK_SECONDARY,
+};
 
 function renderChart(chart: ChartSpec) {
   const { chart_type, x_field, y_field, rows } = chart;
@@ -58,7 +72,7 @@ function renderChart(chart: ChartSpec) {
           ))}
         </Pie>
         <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 12, color: INK_SECONDARY }} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: GRIDLINE }} />
+        <Tooltip contentStyle={tooltipStyle} />
       </PieChart>
     );
   }
@@ -74,7 +88,7 @@ function renderChart(chart: ChartSpec) {
           tickLine={false}
         />
         <YAxis tick={{ fontSize: 12, fill: INK_MUTED }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: GRIDLINE }} />
+        <Tooltip contentStyle={tooltipStyle} />
         <Line
           type="monotone"
           dataKey={y_field}
@@ -97,10 +111,7 @@ function renderChart(chart: ChartSpec) {
         tickLine={false}
       />
       <YAxis tick={{ fontSize: 12, fill: INK_MUTED }} axisLine={false} tickLine={false} />
-      <Tooltip
-        contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: GRIDLINE }}
-        cursor={{ fill: "rgba(0,0,0,0.03)" }}
-      />
+      <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
       <Bar dataKey={y_field} fill={SERIES_1} radius={[4, 4, 0, 0]} maxBarSize={24} />
     </BarChart>
   );
@@ -111,7 +122,7 @@ export function Chart({ chart }: { chart: ChartSpec }) {
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-slate-800">{chart.title}</h3>
+      <h3 className="text-sm font-semibold text-ink">{chart.title}</h3>
       <div className="mt-2 h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
           {renderChart(chart)}
@@ -119,7 +130,7 @@ export function Chart({ chart }: { chart: ChartSpec }) {
       </div>
       <button
         onClick={() => setShowTable((v) => !v)}
-        className="mt-2 text-xs font-medium text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-slate-700"
+        className="mt-2 text-xs font-medium text-ink-muted underline decoration-line underline-offset-2 hover:text-ink-secondary"
       >
         {showTable ? "Hide data table" : "View as table"}
       </button>

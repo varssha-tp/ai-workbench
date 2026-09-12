@@ -31,13 +31,13 @@ export function ProgressChecklist({ steps, done }: ProgressChecklistProps) {
                 isDone
                   ? "bg-emerald-500 text-white"
                   : isActive
-                    ? "animate-pulse bg-brand-200 text-brand-700"
-                    : "bg-slate-100 text-slate-300"
+                    ? "animate-pulse bg-purple-900 text-purple-300"
+                    : "bg-surface-2 text-ink-muted"
               }`}
             >
               {isDone ? "✓" : i + 1}
             </span>
-            <span className={isDone || isActive ? "text-slate-800" : "text-slate-400"}>{step}</span>
+            <span className={isDone || isActive ? "text-ink" : "text-ink-muted"}>{step}</span>
           </li>
         );
       })}

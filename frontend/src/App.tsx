@@ -49,14 +49,14 @@ function App() {
 
   return (
     <div className="min-h-screen px-4 py-12">
-      <div className="mx-auto max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60">
-        <div className="h-1.5 bg-gradient-to-r from-brand-600 via-brand-500 to-brand-300" />
+      <div className="mx-auto max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-surface/60 shadow-2xl shadow-purple-900/50 backdrop-blur-xl">
+        <div className="h-1.5 bg-gradient-to-r from-purple-500 via-purple-400 to-pink-400" />
         <div className="p-8">
           <div className="text-center">
-            <h1 className="bg-gradient-to-r from-brand-700 to-brand-500 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
+            <h1 className="bg-gradient-to-r from-purple-300 via-purple-400 to-pink-400 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
               AI Workbench
             </h1>
-            <p className="mt-1.5 text-sm text-slate-500">Turn information into useful results.</p>
+            <p className="mt-1.5 text-sm text-ink-secondary">Turn information into useful results.</p>
           </div>
 
           {(status === "idle" || status === "error") && (
@@ -69,14 +69,14 @@ function App() {
                 disabled={!canGenerate}
                 isBusy={false}
               />
-              {status === "error" && error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+              {status === "error" && error && <p className="mt-3 text-sm text-red-400">{error}</p>}
             </div>
           )}
 
           {(status === "planning" || status === "running") && (
             <div className="mt-8">
               {status === "planning" ? (
-                <p className="text-sm text-slate-500">Understanding your request…</p>
+                <p className="text-sm text-ink-secondary">Understanding your request…</p>
               ) : (
                 <ProgressChecklist steps={planSteps} done={executeDone} />
               )}

@@ -10,9 +10,9 @@ function formatCell(value: unknown): string {
 
 export function DataTable({ table }: { table: TableSpec }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200">
+    <div className="overflow-x-auto rounded-lg border border-line">
       <table className="w-full text-left text-sm">
-        <thead className="bg-brand-50 text-xs tracking-wide text-brand-700 uppercase">
+        <thead className="bg-surface-2 text-xs tracking-wide text-purple-300 uppercase">
           <tr>
             {table.columns.map((col) => (
               <th key={col} className="px-4 py-2.5 font-medium">
@@ -21,9 +21,9 @@ export function DataTable({ table }: { table: TableSpec }) {
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-line">
           {table.rows.map((row, i) => (
-            <tr key={i} className="text-slate-700 hover:bg-brand-50/40">
+            <tr key={i} className="text-ink-secondary hover:bg-purple-900/10">
               {table.columns.map((col) => (
                 <td key={col} className="px-4 py-2.5 tabular-nums">
                   {formatCell(row[col])}
