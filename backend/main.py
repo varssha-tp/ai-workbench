@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -9,6 +10,13 @@ from backend.models import FileMeta, GoalRequest, TaskPlan, WorkflowResult
 from backend.services.file_service import file_store
 
 app = FastAPI(title="AI Workbench")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def _resolve_files(file_ids: list[str]) -> list[FileMeta]:
