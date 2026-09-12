@@ -71,14 +71,15 @@ Two decisions carry the whole design:
 
 ## Setup
 
+One-time setup for each side, before first run.
+
 **Backend:**
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
-cp .env.example .env          # optional: add OPENROUTER_API_KEY to use a real model
-uvicorn backend.main:app --reload
+cp .env.example .env          # add your own OPENROUTER_API_KEY to use a real model
 ```
 
 Without `OPENROUTER_API_KEY`, the planner runs against Pydantic AI's `TestModel` (schema-valid stub output, no network call) — the app still runs end-to-end for development without a key.
@@ -89,12 +90,41 @@ Without `OPENROUTER_API_KEY`, the planner runs against Pydantic AI's `TestModel`
 cd frontend
 npm install
 cp .env.example .env          # optional: override VITE_API_BASE_URL
+```
+
+## Running it
+
+Needs two terminals open at once — the backend API and the frontend dev server are separate processes.
+
+**Terminal 1 — backend:**
+
+```bash
+uvicorn backend.main:app --reload
+```
+
+Serves the API at `http://127.0.0.1:8000` (interactive docs at `http://127.0.0.1:8000/docs`).
+
+**Terminal 2 — frontend:**
+
+```bash
+cd frontend
 npm run dev
 ```
 
-## Try it
+Open **http://localhost:5173** in your browser (use `localhost`, not `127.0.0.1` — the dev server only answers on the hostname).
 
-`http://127.0.0.1:8000/docs` gives an interactive API console. Or use the real example files under [`examples/`](examples/) with the three demo scripts in [`docs/demo-script.md`](docs/demo-script.md) — each is verified end-to-end against the real model in `tests/test_demo_scenarios.py`.
+**To stop either one:** `Ctrl+C` in its terminal.
+
+To try it without the frontend at all, use `http://127.0.0.1:8000/docs` directly, or drive the real example files under [`examples/`](examples/) with the three demo scripts in [`docs/demo-script.md`](docs/demo-script.md) — each is verified end-to-end against the real model in `tests/test_demo_scenarios.py`.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Home screen](screenshots/01-home.png) | ![Files uploaded](screenshots/02-files-uploaded.png) |
+| Home screen | Files uploaded, ready to generate |
+| ![Planning in progress](screenshots/03-planning.png) | ![Result view](screenshots/04-result.png) |
+| Planning in progress | Result: table, findings, and workflow used |
 
 ## Test
 
@@ -107,7 +137,6 @@ pytest
 - **No persistence.** Uploaded files and computed results live in-memory for the life of the process — restart the server and they're gone. Fine for a hackathon demo, not for production.
 - **Single process, no auth.** No multi-user isolation; anyone hitting the API can see any uploaded file's metadata via `GET /files`.
 - **Five tools, not eight.** The original design sketched 8 named tools including `summarise_document` and `find_information`. Both turned out to be redundant with the executor's own final synthesis after `extract_text` — dropped in favor of 5 real, necessary tools.
-- **Frontend not yet verified live in a browser** on the development machine used to build this — `npm run dev`/`npm run preview` reliably triggers a `CRITICAL_PROCESS_DIED` Windows crash, root cause not yet identified. The frontend TypeScript compiles clean and consumes a fully-tested API; live verification (and the demo video) is the last remaining step, to be done once resolved or on different hardware.
 
 ## AI usage disclosure
 
