@@ -4,6 +4,7 @@ from pydantic import BaseModel, computed_field, field_validator
 
 ToolName = Literal[
     "extract_text",
+    "extract_structured_data",
     "analyse_dataset",
     "compare_datasets",
     "generate_chart",

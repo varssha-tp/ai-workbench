@@ -1,3 +1,4 @@
+import inspect
 import re
 
 from pydantic import BaseModel
@@ -9,11 +10,12 @@ from backend.models import ChartSpec, TableSpec, TaskPlan, WorkflowResult
 from backend.services.result_service import result_store
 from backend.tools._common import to_records
 from backend.tools.data_tools import analyse_dataset, compare_datasets
-from backend.tools.document_tools import extract_text
+from backend.tools.document_tools import extract_structured_data, extract_text
 from backend.tools.output_tools import create_table, generate_chart
 
 TOOL_FUNCTIONS = {
     "extract_text": extract_text,
+    "extract_structured_data": extract_structured_data,
     "analyse_dataset": analyse_dataset,
     "compare_datasets": compare_datasets,
     "generate_chart": generate_chart,
@@ -66,11 +68,13 @@ async def run_plan(plan: TaskPlan) -> WorkflowResult:
 
         resolved_args = resolve_args(call.args, context)
         result = func(**resolved_args)
+        if inspect.iscoroutine(result):
+            result = await result
 
         if isinstance(result, dict) and "result_id" in result:
             context[i] = result["result_id"]
 
-        if call.tool in ("analyse_dataset", "compare_datasets"):
+        if call.tool in ("analyse_dataset", "compare_datasets", "extract_structured_data"):
             previews.append(
                 f"{call.step}: {result['row_count']} rows, preview: {result['preview']}"
             )

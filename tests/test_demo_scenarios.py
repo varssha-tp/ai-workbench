@@ -78,7 +78,7 @@ def test_demo_3_visualise_monthly_sales_trend():
     response = client.post(
         "/execute",
         json={
-            "goal": "Show me the monthly sales trend as a chart.",
+            "goal": "Show me the monthly sales trend as a chart, using the 'month' and 'sales' columns.",
             "file_ids": [csv_id],
         },
     )
