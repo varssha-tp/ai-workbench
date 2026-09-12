@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { WorkflowResult } from "../types";
 import { Chart } from "./Chart";
 import { DataTable } from "./DataTable";
@@ -8,20 +9,32 @@ interface ResultViewProps {
   onReset: () => void;
 }
 
+function SectionHeading({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-1.5 text-sm font-semibold tracking-wide text-brand-600 uppercase">
+      <span className="h-3.5 w-1 rounded-full bg-brand-500" />
+      {children}
+    </h3>
+  );
+}
+
 export function ResultView({ result, workflowSteps, onReset }: ResultViewProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Result</h2>
+        <SectionHeading>Result</SectionHeading>
         <p className="mt-1.5 text-sm text-slate-700">{result.summary}</p>
       </div>
 
       {result.findings.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Key findings</h3>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-slate-700">
+          <SectionHeading>Key findings</SectionHeading>
+          <ul className="mt-1.5 space-y-1.5 text-sm text-slate-700">
             {result.findings.map((finding, i) => (
-              <li key={i}>{finding}</li>
+              <li key={i} className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
+                {finding}
+              </li>
             ))}
           </ul>
         </div>
@@ -29,7 +42,7 @@ export function ResultView({ result, workflowSteps, onReset }: ResultViewProps) 
 
       {result.table && (
         <div>
-          <h3 className="text-sm font-semibold tracking-wide text-slate-400 uppercase">{result.table.title}</h3>
+          <SectionHeading>{result.table.title}</SectionHeading>
           <div className="mt-1.5">
             <DataTable table={result.table} />
           </div>
@@ -38,7 +51,7 @@ export function ResultView({ result, workflowSteps, onReset }: ResultViewProps) 
 
       {result.chart && (
         <div>
-          <h3 className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Visualisation</h3>
+          <SectionHeading>Visualisation</SectionHeading>
           <div className="mt-1.5">
             <Chart chart={result.chart} />
           </div>
@@ -46,7 +59,7 @@ export function ResultView({ result, workflowSteps, onReset }: ResultViewProps) 
       )}
 
       <div>
-        <h3 className="text-sm font-semibold tracking-wide text-slate-400 uppercase">Workflow used</h3>
+        <SectionHeading>Workflow used</SectionHeading>
         <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-sm text-slate-500">
           {workflowSteps.map((step, i) => (
             <li key={i}>{step}</li>
@@ -56,7 +69,7 @@ export function ResultView({ result, workflowSteps, onReset }: ResultViewProps) 
 
       <button
         onClick={onReset}
-        className="text-sm font-medium text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-slate-700"
+        className="text-sm font-medium text-brand-600 underline decoration-brand-200 underline-offset-2 hover:text-brand-700"
       >
         Start a new request
       </button>

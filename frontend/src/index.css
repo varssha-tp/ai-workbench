@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+/* Brand scale anchored on the same blue used as the chart's series-1 color
+   (see Chart.tsx / the dataviz skill's validated categorical palette), so the
+   UI chrome and the data visualisations read as one coherent system. */
+@theme {
+  --color-brand-50: #f2f8fe;
+  --color-brand-100: #cde2fb;
+  --color-brand-200: #9ec5f4;
+  --color-brand-300: #6da7ec;
+  --color-brand-400: #3987e5;
+  --color-brand-500: #2a78d6;
+  --color-brand-600: #256abf;
+  --color-brand-700: #184f95;
+  --color-brand-900: #0d366b;
+}
+
 body {
-  background-color: #f8fafc;
+  background: linear-gradient(180deg, var(--color-brand-50) 0%, #f8fafc 320px, #f8fafc 100%);
+  min-height: 100vh;
 }

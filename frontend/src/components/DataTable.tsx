@@ -12,7 +12,7 @@ export function DataTable({ table }: { table: TableSpec }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200">
       <table className="w-full text-left text-sm">
-        <thead className="bg-slate-50 text-xs tracking-wide text-slate-500 uppercase">
+        <thead className="bg-brand-50 text-xs tracking-wide text-brand-700 uppercase">
           <tr>
             {table.columns.map((col) => (
               <th key={col} className="px-4 py-2.5 font-medium">
@@ -23,7 +23,7 @@ export function DataTable({ table }: { table: TableSpec }) {
         </thead>
         <tbody className="divide-y divide-slate-100">
           {table.rows.map((row, i) => (
-            <tr key={i} className="text-slate-700">
+            <tr key={i} className="text-slate-700 hover:bg-brand-50/40">
               {table.columns.map((col) => (
                 <td key={col} className="px-4 py-2.5 tabular-nums">
                   {formatCell(row[col])}

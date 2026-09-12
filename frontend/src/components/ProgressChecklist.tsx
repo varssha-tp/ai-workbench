@@ -31,7 +31,7 @@ export function ProgressChecklist({ steps, done }: ProgressChecklistProps) {
                 isDone
                   ? "bg-emerald-500 text-white"
                   : isActive
-                    ? "animate-pulse bg-slate-300 text-slate-600"
+                    ? "animate-pulse bg-brand-200 text-brand-700"
                     : "bg-slate-100 text-slate-300"
               }`}
             >
