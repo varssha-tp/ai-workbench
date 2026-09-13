@@ -48,6 +48,12 @@ function App() {
     setPlanSteps([]);
     setPlanCalls([]);
     setError(null);
+    setFiles([]);
+    setGoal("");
+  }
+
+  function handleFileRemoved(fileId: string) {
+    setFiles((f) => f.filter((file) => file.file_id !== fileId));
   }
 
   return (
@@ -64,7 +70,11 @@ function App() {
 
           {(status === "idle" || status === "error") && (
             <div className="mt-8">
-              <Dropzone files={files} onFilesAdded={(newFiles) => setFiles((f) => [...f, ...newFiles])} />
+              <Dropzone
+                files={files}
+                onFilesAdded={(newFiles) => setFiles((f) => [...f, ...newFiles])}
+                onFileRemoved={handleFileRemoved}
+              />
               <GoalInput
                 goal={goal}
                 onGoalChange={setGoal}

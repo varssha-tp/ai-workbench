@@ -23,6 +23,7 @@ TOOL_FUNCTIONS = {
 }
 
 STEP_REFERENCE_RE = re.compile(r"^\$result_of_step_(\d+)$")
+TEXT_OUTPUT_CHAR_LIMIT = 12_000
 
 
 class _Findings(BaseModel):
@@ -111,7 +112,12 @@ async def run_plan(plan: TaskPlan) -> WorkflowResult:
 
     context_lines = list(previews)
     for text in text_outputs:
-        context_lines.append(f"Extracted document text (truncated): {text[:3000]}")
+        # extract_text itself caps at 20k chars; this second cap just keeps
+        # the findings prompt bounded — 3k was cutting off later sections of
+        # real multi-part documents (e.g. a form's later reflection
+        # paragraphs), causing summaries to lean on whatever metadata
+        # appeared early and skip substantive content that came later.
+        context_lines.append(f"Extracted document text (truncated): {text[:TEXT_OUTPUT_CHAR_LIMIT]}")
 
     findings_prompt = f"Goal: {plan.goal}\n\n" + "\n\n".join(context_lines)
     findings_result = await findings_agent.run(findings_prompt)
