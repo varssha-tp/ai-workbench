@@ -82,7 +82,7 @@ export function ResultView({ result, planCalls, files, onReset }: ResultViewProp
       {result.chart && (
         <div>
           <SectionHeading computed>Visualisation</SectionHeading>
-          <div className="mt-1.5">
+          <div className="mt-3">
             <Chart chart={result.chart} />
           </div>
         </div>
