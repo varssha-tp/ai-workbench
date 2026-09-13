@@ -60,7 +60,7 @@ export function GoalInput({ goal, onGoalChange, onGenerate, disabled, isBusy, fi
       </label>
 
       {suggestions.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
+        <div className="mt-2 mb-3 flex flex-wrap gap-1.5">
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.label}
@@ -80,7 +80,9 @@ export function GoalInput({ goal, onGoalChange, onGenerate, disabled, isBusy, fi
         onChange={(e) => onGoalChange(e.target.value)}
         placeholder="Compare the two months and find products with a significant sales decline…"
         rows={3}
-        className="mt-1.5 w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:border-purple-400 focus:ring-2 focus:ring-purple-900/60 focus:outline-none"
+        className={`w-full resize-none rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:border-purple-400 focus:ring-2 focus:ring-purple-900/60 focus:outline-none ${
+          suggestions.length > 0 ? "" : "mt-1.5"
+        }`}
       />
       <button
         onClick={onGenerate}

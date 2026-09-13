@@ -119,6 +119,27 @@ async def run_plan(plan: TaskPlan) -> WorkflowResult:
         # appeared early and skip substantive content that came later.
         context_lines.append(f"Extracted document text (truncated): {text[:TEXT_OUTPUT_CHAR_LIMIT]}")
 
+    # Tell the findings model explicitly when a table/chart is ALSO being
+    # shown directly to the user — otherwise it tends to just transcribe
+    # every row as a "finding" (verified: reproduced this exact behaviour
+    # in testing), which is pure duplication since the user can already see
+    # the table right below.
+    if table_spec is not None:
+        context_lines.append(
+            f"Note: the full table '{table_spec.title}' ({len(table_spec.rows)} rows, "
+            f"columns: {table_spec.columns}) is ALSO shown directly to the user, right "
+            "below your summary. Do not restate its rows as findings — that would just "
+            "duplicate what they can already see. Findings should add something the "
+            "table alone doesn't make obvious (a pattern, an extreme, a total, an "
+            "exception), or can be omitted if there's nothing beyond the table itself."
+        )
+    if chart_spec is not None:
+        context_lines.append(
+            f"Note: a {chart_spec.chart_type} chart '{chart_spec.title}' is ALSO shown "
+            "directly to the user. Don't just describe every point on it — call out "
+            "what the trend/shape actually means."
+        )
+
     findings_prompt = f"Goal: {plan.goal}\n\n" + "\n\n".join(context_lines)
     findings_result = await findings_agent.run(findings_prompt)
     findings = findings_result.output

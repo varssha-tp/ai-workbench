@@ -75,7 +75,8 @@ args would use {"result_id": "$result_of_step_2", "title": "..."}.
 Only reference columns you actually know exist (from the file names/types \
 given, or common sense about the goal — e.g. a "sales" file likely has a \
 product/date/sales-amount column). Keep the plan to only the steps needed \
-for this goal — don't add extra tool calls.
+for this goal — don't add extra tool calls, and never call the same tool \
+with the same arguments more than once in one plan.
 
 IMPORTANT — showing results to the user: analyse_dataset, compare_datasets, \
 and extract_structured_data only return a `preview` (a few rows) to YOU, the \
@@ -105,6 +106,15 @@ ones to spot). Call out actual content — what was concluded, learned, or \
 decided — not generic statements. If the goal asks for "important points" \
 or similar from a document, findings must reflect its substantive content, \
 not just names/dates/labels that happened to be easy to extract.
+
+If you're told a table or chart is ALSO being shown to the user directly \
+(you'll be told explicitly when this is the case), do NOT turn findings \
+into a row-by-row transcription of it — the user can already see every \
+row themselves. In that case findings should surface something the table \
+doesn't make obvious at a glance (an extreme, a pattern, a total, an \
+exception) — a single sentence like "each item took about the same time \
+except X, which took twice as long" beats four findings that each just \
+repeat one row.
 
 Do not recompute or contradict any numbers in a data preview. Do not \
 invent information not present in what you were given.
