@@ -195,6 +195,50 @@ def test_execute_summary_covers_substantive_content_not_just_metadata():
     assert themes_present >= 2, f"summary/findings too shallow: {combined}"
 
 
+def test_execute_findings_dont_just_transcribe_table_rows():
+    """Reproduces a real bug: when a table is also being shown, findings used
+    to just restate each row in prose ("Date: X, Duration: Y" per row) — pure
+    duplication of what the table already shows. Findings should add insight
+    (an extreme, a pattern, a total) instead."""
+    import fitz
+
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), "Session 1: 14-Jul-2026, duration 2 hours, topic: SQL fundamentals")
+    page.insert_text((72, 100), "Session 2: 21-Jul-2026, duration 1.5 hours, topic: Data visualisation")
+    page.insert_text((72, 128), "Session 3: 4-Aug-2026, duration 2 hours, topic: Statistics basics")
+    page.insert_text((72, 156), "Session 4: 18-Aug-2026, duration 1 hour, topic: Final project review")
+    pdf_bytes = doc.tobytes()
+    doc.close()
+
+    upload_response = client.post(
+        "/upload", files=[("files", ("training_log.pdf", pdf_bytes, "application/pdf"))]
+    )
+    file_id = upload_response.json()[0]["file_id"]
+
+    response = client.post(
+        "/execute",
+        json={
+            "goal": "Extract the following into a table: date, duration, and topic",
+            "file_ids": [file_id],
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+    assert body["table"] is not None
+    row_dates = [row["date"] for row in body["table"]["rows"]]
+
+    # If findings were just a row-by-row transcription, every finding would
+    # contain a distinct row's date. Real insights shouldn't hit that 1:1.
+    findings_mentioning_a_date = sum(
+        1 for f in body["findings"] if any(date in f for date in row_dates)
+    )
+    assert findings_mentioning_a_date < len(row_dates), (
+        f"findings look like a row transcription: {body['findings']}"
+    )
+
+
 def test_run_plan_surfaces_uncalled_result_as_table_fallback():
     """A plan that computes something but never calls create_table/generate_chart
     should still show the result — the LLM doesn't reliably remember that extra
