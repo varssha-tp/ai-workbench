@@ -104,7 +104,7 @@ function App() {
 
           {status === "done" && result && (
             <div className="mt-8">
-              <ResultView result={result} workflowSteps={planSteps} planCalls={planCalls} onReset={handleReset} />
+              <ResultView result={result} planCalls={planCalls} files={files} onReset={handleReset} />
             </div>
           )}
         </div>
