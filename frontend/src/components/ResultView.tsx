@@ -10,20 +10,11 @@ interface ResultViewProps {
   onReset: () => void;
 }
 
-function ComputedBadge() {
-  return (
-    <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium tracking-wide text-emerald-400 normal-case">
-      ✓ computed
-    </span>
-  );
-}
-
-function SectionHeading({ children, computed }: { children: ReactNode; computed?: boolean }) {
+function SectionHeading({ children }: { children: ReactNode }) {
   return (
     <h3 className="flex items-center gap-1.5 text-sm font-semibold tracking-wide text-purple-300 uppercase">
       <span className="h-3.5 w-1 rounded-full bg-gradient-to-b from-purple-400 to-pink-400" />
       {children}
-      {computed && <ComputedBadge />}
     </h3>
   );
 }
@@ -72,7 +63,7 @@ export function ResultView({ result, planCalls, files, onReset }: ResultViewProp
 
       {result.table && (
         <div>
-          <SectionHeading computed>{result.table.title}</SectionHeading>
+          <SectionHeading>{result.table.title}</SectionHeading>
           <div className="mt-1.5">
             <DataTable table={result.table} />
           </div>
@@ -81,7 +72,7 @@ export function ResultView({ result, planCalls, files, onReset }: ResultViewProp
 
       {result.chart && (
         <div>
-          <SectionHeading computed>Visualisation</SectionHeading>
+          <SectionHeading>Visualisation</SectionHeading>
           <div className="mt-3">
             <Chart chart={result.chart} />
           </div>
