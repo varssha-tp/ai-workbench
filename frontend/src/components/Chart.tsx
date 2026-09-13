@@ -66,7 +66,15 @@ function renderChart(chart: ChartSpec) {
     const data = foldPieData(rows, x_field, y_field);
     return (
       <PieChart>
-        <Pie data={data} dataKey={y_field} nameKey={x_field} outerRadius="80%" strokeWidth={2} stroke={SURFACE}>
+        <Pie
+          data={data}
+          dataKey={y_field}
+          nameKey={x_field}
+          outerRadius="80%"
+          strokeWidth={2}
+          stroke={SURFACE}
+          isAnimationActive={false}
+        >
           {data.map((_, i) => (
             <Cell key={i} fill={CATEGORICAL[i % CATEGORICAL.length]} />
           ))}
@@ -96,6 +104,7 @@ function renderChart(chart: ChartSpec) {
           strokeWidth={2}
           dot={{ r: 4, fill: SERIES_1, stroke: SURFACE, strokeWidth: 2 }}
           activeDot={{ r: 5 }}
+          isAnimationActive={false}
         />
       </LineChart>
     );
@@ -112,7 +121,7 @@ function renderChart(chart: ChartSpec) {
       />
       <YAxis tick={{ fontSize: 12, fill: INK_MUTED }} axisLine={false} tickLine={false} />
       <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-      <Bar dataKey={y_field} fill={SERIES_1} radius={[4, 4, 0, 0]} maxBarSize={24} />
+      <Bar dataKey={y_field} fill={SERIES_1} radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={false} />
     </BarChart>
   );
 }
