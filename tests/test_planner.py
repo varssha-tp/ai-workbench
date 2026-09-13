@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from backend.agent.planner import _build_prompt
 from backend.main import app
 from backend.models import FileMeta
+from backend.services.file_service import file_store
 
 client = TestClient(app)
 
@@ -68,3 +69,25 @@ def test_build_prompt_includes_filenames_deterministically():
 
 def test_build_prompt_without_files_is_just_the_goal():
     assert _build_prompt("Find the sales trend", None) == "Find the sales trend"
+
+
+def test_build_prompt_includes_real_csv_column_names():
+    """Regression test: the planner used to guess column names from
+    convention (e.g. assuming a "date" column) instead of being told the
+    real ones, causing repeated "Column not found" failures. The prompt
+    must carry the file's actual header row."""
+    meta = file_store.save("monthly_sales.csv", b"month,sales\nJanuary,12000\nFebruary,12500\n")
+
+    prompt = _build_prompt("Chart the sales trend", [meta])
+
+    assert "columns: month, sales" in prompt
+
+
+def test_build_prompt_omits_columns_for_unregistered_file():
+    # A FileMeta not backed by a real stored file (e.g. a synthetic/unknown
+    # file_id) must not error out — just skip the columns hint.
+    meta = FileMeta(file_id="does-not-exist", filename="ghost.csv", file_type="csv", size_bytes=10)
+
+    prompt = _build_prompt("Chart the sales trend", [meta])
+
+    assert "columns:" not in prompt
