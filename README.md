@@ -128,7 +128,7 @@ To try it without the frontend at all, use `http://127.0.0.1:8000/docs` directly
 | ![Home screen](screenshots/01-home.png) | ![Files uploaded](screenshots/02-files-uploaded.png) |
 | Home screen | Files uploaded, ready to generate |
 | ![Planning in progress](screenshots/03-planning.png) | ![Result view](screenshots/04-result.png) |
-| Planning in progress | A PDF's data extracted into a real, computed table — the "✓ computed" badge marks a verified result, and "How this was generated" expands to show the real tool calls that ran, in plain filenames rather than raw IDs |
+| Planning in progress | A PDF's data extracted into a real, computed table — "How this was generated" expands to show the real tool calls that ran, in plain filenames rather than raw IDs |
 
 ## Test
 
