@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { FileMeta } from "../types";
 
 interface GoalInputProps {
@@ -9,25 +10,48 @@ interface GoalInputProps {
   files: FileMeta[];
 }
 
-function suggestionsFor(files: FileMeta[]): string[] {
+interface Suggestion {
+  label: string;
+  template: string;
+}
+
+function suggestionsFor(files: FileMeta[]): Suggestion[] {
   const hasPdf = files.some((f) => f.file_type === "pdf");
   const spreadsheets = files.filter((f) => f.file_type === "csv" || f.file_type === "excel");
 
-  const suggestions: string[] = [];
+  const suggestions: Suggestion[] = [];
   if (hasPdf) {
-    suggestions.push("Summarise this document", "Extract the key data into a table");
+    suggestions.push(
+      { label: "Summarise", template: "Summarise this document, focusing on: " },
+      { label: "Extract to a table", template: "Extract the following into a table: " }
+    );
   }
   if (spreadsheets.length > 0) {
-    suggestions.push("Find the biggest changes", "Show me a trend chart");
+    suggestions.push(
+      { label: "Find biggest changes", template: "Find the rows where " },
+      { label: "Trend chart", template: "Show me a chart of the trend in " }
+    );
   }
   if (spreadsheets.length >= 2) {
-    suggestions.push("Compare these files and find what changed");
+    suggestions.push({ label: "Compare files", template: "Compare these files on the column " });
   }
   return suggestions;
 }
 
 export function GoalInput({ goal, onGoalChange, onGenerate, disabled, isBusy, files }: GoalInputProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const suggestions = suggestionsFor(files);
+
+  function applySuggestion(template: string) {
+    onGoalChange(template);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    });
+  }
 
   return (
     <div className="mt-5">
@@ -39,18 +63,19 @@ export function GoalInput({ goal, onGoalChange, onGenerate, disabled, isBusy, fi
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {suggestions.map((suggestion) => (
             <button
-              key={suggestion}
+              key={suggestion.label}
               type="button"
-              onClick={() => onGoalChange(suggestion)}
+              onClick={() => applySuggestion(suggestion.template)}
               className="rounded-full border border-purple-700/60 bg-purple-900/20 px-2.5 py-1 text-xs text-purple-200 transition-colors hover:bg-purple-900/40"
             >
-              {suggestion}
+              {suggestion.label}
             </button>
           ))}
         </div>
       )}
 
       <textarea
+        ref={textareaRef}
         value={goal}
         onChange={(e) => onGoalChange(e.target.value)}
         placeholder="Compare the two months and find products with a significant sales decline…"

@@ -131,6 +131,70 @@ def test_execute_extracts_structured_data_from_pdf_into_a_real_table():
     assert len(body["table"]["rows"]) == 3
 
 
+def test_execute_summary_covers_substantive_content_not_just_metadata():
+    """A document with several distinct reflective/opinion sections should get a
+    summary and findings about that content, not just names/dates/labels that
+    happen to be easy to extract. Reproduces a real bug: the original prompt +
+    a 3000-char truncation cap produced a summary that was basically just the
+    participant's name/school/company, with findings barely touching the
+    document's actual substance."""
+    import fitz
+
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((72, 72), "Student Name: Jordan Lee, Admission No.: 2401234A")
+    page.insert_text((72, 100), "Mentor: Sam Ong, Company: ExampleCo Pte Ltd")
+    page.insert_textbox(
+        fitz.Rect(72, 130, 525, 220),
+        "Career journey: The sessions helped me think more seriously about my "
+        "plans after graduation. I realized I should start building my "
+        "knowledge and experience early so I have a stronger foundation.",
+        fontsize=10,
+    )
+    page.insert_textbox(
+        fitz.Rect(72, 230, 525, 320),
+        "Industry insight: The AI industry is changing quickly and Singapore "
+        "faces growing competition from other countries. Companies are also "
+        "reconsidering whether to insource or outsource certain capabilities.",
+        fontsize=10,
+    )
+    page.insert_textbox(
+        fitz.Rect(72, 330, 525, 420),
+        "Personal development: I learnt the importance of planning ahead, "
+        "using my strengths to compensate for weaknesses, and staying open "
+        "to opportunities even if my interests change over time.",
+        fontsize=10,
+    )
+    pdf_bytes = doc.tobytes()
+    doc.close()
+
+    upload_response = client.post(
+        "/upload", files=[("files", ("reflection_form.pdf", pdf_bytes, "application/pdf"))]
+    )
+    file_id = upload_response.json()[0]["file_id"]
+
+    response = client.post(
+        "/execute",
+        json={
+            "goal": "Summarise this and give me the important points.",
+            "file_ids": [file_id],
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+    assert len(body["findings"]) >= 3
+
+    combined = (body["summary"] + " ".join(body["findings"])).lower()
+    # The summary/findings must engage with at least two of the three
+    # substantive themes, not just restate the name/company header.
+    themes_present = sum(
+        theme in combined
+        for theme in ("industry", "compet", "plan", "foundation", "strength", "opportunit")
+    )
+    assert themes_present >= 2, f"summary/findings too shallow: {combined}"
+
+
 def test_run_plan_surfaces_uncalled_result_as_table_fallback():
     """A plan that computes something but never calls create_table/generate_chart
     should still show the result — the LLM doesn't reliably remember that extra

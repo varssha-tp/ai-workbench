@@ -7,9 +7,10 @@ const TYPE_LABEL: Record<string, string> = { pdf: "PDF", csv: "CSV", excel: "Exc
 interface DropzoneProps {
   files: FileMeta[];
   onFilesAdded: (files: FileMeta[]) => void;
+  onFileRemoved: (fileId: string) => void;
 }
 
-export function Dropzone({ files, onFilesAdded }: DropzoneProps) {
+export function Dropzone({ files, onFilesAdded, onFileRemoved }: DropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,14 @@ export function Dropzone({ files, onFilesAdded }: DropzoneProps) {
             >
               <span className="font-medium">{f.filename}</span>
               <span className="text-purple-400">{TYPE_LABEL[f.file_type] ?? f.file_type}</span>
+              <button
+                type="button"
+                onClick={() => onFileRemoved(f.file_id)}
+                aria-label={`Remove ${f.filename}`}
+                className="ml-0.5 leading-none text-purple-400 hover:text-pink-300"
+              >
+                ×
+              </button>
             </li>
           ))}
         </ul>
