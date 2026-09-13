@@ -72,11 +72,15 @@ exact string "$result_of_step_N" (1-indexed) instead of a literal value — \
 for example, if step 2 is a compare_datasets call, step 3's create_table \
 args would use {"result_id": "$result_of_step_2", "title": "..."}.
 
-Only reference columns you actually know exist (from the file names/types \
-given, or common sense about the goal — e.g. a "sales" file likely has a \
-product/date/sales-amount column). Keep the plan to only the steps needed \
-for this goal — don't add extra tool calls, and never call the same tool \
-with the same arguments more than once in one plan.
+For a CSV/Excel file, "Files provided" lists its real column names — \
+always use those exact names verbatim, never guess or assume a column name \
+from convention (e.g. don't assume "date" just because the data looks like \
+a time series — use whatever the actual column is called, even if that's \
+"month" or something else). If a file's columns weren't listed (rare — \
+only happens if they couldn't be read), pick the most reasonable column \
+name from context. Keep the plan to only the steps needed for this goal — \
+don't add extra tool calls, and never call the same tool with the same \
+arguments more than once in one plan.
 
 IMPORTANT — showing results to the user: analyse_dataset, compare_datasets, \
 and extract_structured_data only return a `preview` (a few rows) to YOU, the \
