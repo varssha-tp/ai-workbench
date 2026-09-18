@@ -182,7 +182,11 @@ To try it without the frontend at all, use `http://127.0.0.1:8000/docs` directly
 | ![Home screen](screenshots/01-home.png) | ![Files uploaded](screenshots/02-files-uploaded.png) |
 | Home screen | Files uploaded, ready to generate |
 | ![Planning in progress](screenshots/03-planning.png) | ![Result view](screenshots/04-result.png) |
-| Planning in progress | A PDF's data extracted into a real, computed table — "How this was generated" expands to show the real tool calls that ran, in plain filenames rather than raw IDs |
+| Planning in progress | **Transform** — a PDF's data extracted into a real, computed table. "How this was generated" expands to show the real tool calls that ran, in plain filenames rather than raw IDs |
+| ![Understand result](screenshots/05-demo1-understand.png) | ![Analyse result](screenshots/06-demo2-analyse.png) |
+| **Understand** — a PDF summarised into a real result and three findings, not just metadata | **Analyse** — two spreadsheets compared, correctly narrowed down to the one product that actually crossed the 20% decline threshold |
+| ![Visualise + Decide result](screenshots/07-demo3-visualise.png) | |
+| **Visualise + Decide** — a chart built from real data, with the model calling out the one trend that's actually worth noticing | |
 
 ## Test
 
@@ -198,4 +202,4 @@ pytest
 
 ## AI usage disclosure
 
-This project was built with substantial assistance from **Claude Code** (Anthropic, model Claude Sonnet 5), per GIBC V2's disclosure requirement. Concretely: the overall architecture (the planner/executor split, the `result_id`-based data-flow design, the tool set) was designed collaboratively — proposed, explained, and reviewed at each phase — and effectively all source code (backend, frontend, tests, example-data generation) was written by Claude Code based on that design. The product concept, scope decisions, and direction throughout were the author's own. Every phase was verified with real tests before being committed, most run against the real OpenRouter model rather than mocked.
+This project was built with substantial assistance from **Claude Code** (Anthropic, model Claude Sonnet 5), per GIBC V2's disclosure requirement.
