@@ -71,7 +71,61 @@ Three decisions carry the whole design:
 | AI | [Pydantic AI](https://ai.pydantic.dev/), OpenRouter (`openai/gpt-4o-mini`) |
 | Data | pandas, openpyxl |
 | Documents | PyMuPDF |
-| Testing | pytest (38 tests, backend fully covered) |
+| Testing | pytest (42 tests, backend fully covered) |
+
+## Project structure
+
+Here's a map of the codebase, grouped by what each part is actually for.
+
+```
+backend/                   The API and all the "thinking" — a FastAPI app
+├── main.py                 The API itself: /upload, /plan, /execute endpoints, plus error handling
+├── models.py                Every data shape used across the app (a file, a plan, a tool call, a result)
+├── agent/
+│   ├── planner.py            Turns a goal + files into a step-by-step plan, using an LLM
+│   ├── prompts.py             The actual instructions given to the LLM (what each tool does, how to use it)
+│   └── executor.py            Runs a plan for real: calls each tool in order, then asks the LLM to write a summary
+├── tools/                   The six things the system can actually do — one file each
+│   ├── document_tools.py       Read a PDF's text, or pull a structured table out of one
+│   ├── data_tools.py            Do the real math on a CSV/Excel file (pandas, not the LLM)
+│   ├── output_tools.py           Shape a result into a table or a chart
+│   └── _common.py                 A tiny shared helper (cleans up data so it's safe to send as JSON)
+└── services/                 Where uploaded files and computed results are kept in memory
+    ├── file_service.py         Stores uploaded files and remembers their type/name
+    └── result_service.py        Stores the output of every tool call so later steps can reuse it
+
+frontend/                  The React app people actually see and click through
+└── src/
+    ├── App.tsx                  The whole page's flow: upload → describe your goal → see the result
+    ├── api.ts                    Talks to the backend (the fetch calls)
+    ├── types.ts                   TypeScript versions of the backend's data shapes, kept in sync by hand
+    └── components/
+        ├── Dropzone.tsx             The file upload box
+        ├── GoalInput.tsx             The text box where you describe what you want, plus suggestion chips
+        ├── ProgressChecklist.tsx      The "thinking..." progress bar and step list
+        ├── ResultView.tsx             Shows the summary, findings, table, and chart once a result is ready
+        ├── DataTable.tsx               Renders a table
+        └── Chart.tsx                    Renders a chart (bar / line / pie)
+
+tests/                    Automated tests — every one of these actually runs against real files
+├── test_planner.py         Checks the planner builds sensible plans and prompts
+├── test_execute.py          Checks a full plan actually runs and produces the right result
+├── test_tools.py             Checks each of the six tools individually
+├── test_upload.py             Checks file upload handles good and bad files correctly
+├── test_demo_scenarios.py     The four demo scenarios from the video, proven to work before they're recorded
+└── conftest.py               Shared test setup (loads the API key so tests use the real model, not a stub)
+
+examples/                 Real example files to try the app with, plus the script that generates them
+├── generate_examples.py    Regenerates every file below from scratch, so they're always reproducible
+├── reports/                 Example PDFs (an annual report, a training session log)
+├── sales/                    Two months of example spreadsheets, for the "compare and find declines" demo
+└── datasets/                  An example CSV, for the "chart the trend" demo
+
+requirements.txt          Python dependencies for the backend
+.env.example               Template for the backend's API key — copy to .env and fill in your own
+```
+
+`frontend/` also has its own config files (`vite.config.ts`, `tsconfig*.json`, `package.json`) — standard tooling setup, nothing project-specific to explain.
 
 ## Setup
 
@@ -119,7 +173,7 @@ Open **http://localhost:5173** in your browser (use `localhost`, not `127.0.0.1`
 
 **To stop either one:** `Ctrl+C` in its terminal.
 
-To try it without the frontend at all, use `http://127.0.0.1:8000/docs` directly, or drive the real example files under [`examples/`](examples/) with the three demo scripts in [`docs/demo-script.md`](docs/demo-script.md) — each is verified end-to-end against the real model in `tests/test_demo_scenarios.py`.
+To try it without the frontend at all, use `http://127.0.0.1:8000/docs` directly, or drive the real example files under [`examples/`](examples/) — four scenarios (summarise a PDF, compare two spreadsheets, chart a trend, extract a table from a PDF) are verified end-to-end against the real model in [`tests/test_demo_scenarios.py`](tests/test_demo_scenarios.py).
 
 ## Screenshots
 
